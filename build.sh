@@ -1,6 +1,6 @@
 #!/bin/sh
 # Builds the revision tool into the build/ folder (Linux / macOS / Git Bash).
-#   ./build.sh        -> build/revisiontool          (current OS/architecture)
+#   ./build.sh        -> build/revisiontool[.exe]    (current OS/architecture)
 #   ./build.sh all    -> also build/revisiontool.exe and build/revisiontool-linux-amd64
 set -eu
 
@@ -14,8 +14,9 @@ export CGO_ENABLED=0   # pure Go: no C compiler needed
 echo "Running tests..."
 go test ./...
 
-echo "Building build/revisiontool ..."
-go build -trimpath -ldflags "-s -w" -o "$out/revisiontool" ./cmd/revisiontool
+exe=$(go env GOEXE)
+echo "Building build/revisiontool$exe ..."
+go build -trimpath -ldflags "-s -w" -o "$out/revisiontool$exe" ./cmd/revisiontool
 
 if [ "${1:-}" = "all" ]; then
     echo "Building build/revisiontool.exe (Windows amd64) ..."
