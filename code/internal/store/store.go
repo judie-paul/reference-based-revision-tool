@@ -37,15 +37,15 @@ const (
 var ErrNotFound = errors.New("not found")
 
 type Session struct {
-	ID                int64
-	Title             string
-	CreatedAt         time.Time
-	QuestionsStatus   string // "pending", "ok", "failed"
-	QuestionsError    string
-	UnassignedText    []string // paper text not attributed to any extracted question
-	ReferenceTokens   int
-	QuestionCount     int
-	AnsweredCount     int
+	ID              int64
+	Title           string
+	CreatedAt       time.Time
+	QuestionsStatus string // "pending", "ok", "failed"
+	QuestionsError  string
+	UnassignedText  []string // paper text not attributed to any extracted question
+	ReferenceTokens int
+	QuestionCount   int
+	AnsweredCount   int
 }
 
 type Document struct {

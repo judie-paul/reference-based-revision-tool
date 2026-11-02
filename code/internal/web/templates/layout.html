@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · Revision Tool</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="/">Revision Tool</a>
+  <span class="tagline">Document-grounded exam revision</span>
+</header>
+<main>
+{{if not .LLMReady}}
+  <div class="alert alert-error"><strong>LLM not configured.</strong> {{.LLMError}}</div>
+{{end}}
+{{template "content" .}}
+</main>
+<footer class="footer">
+  {{if .LLMReady}}Model: {{.ModelName}}{{end}}
+  · External search: {{if .SearchReady}}{{.SearchName}}{{else}}not configured{{end}}
+</footer>
+</body>
+</html>

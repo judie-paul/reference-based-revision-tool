@@ -49,8 +49,8 @@ func New(cfg config.Config) Provider {
 type None struct{}
 
 func (None) Search(context.Context, string, int) ([]Result, error) { return nil, ErrUnavailable }
-func (None) Available() bool                                        { return false }
-func (None) Name() string                                           { return "none" }
+func (None) Available() bool                                       { return false }
+func (None) Name() string                                          { return "none" }
 
 // Tavily uses the Tavily search API (https://docs.tavily.com).
 type Tavily struct {

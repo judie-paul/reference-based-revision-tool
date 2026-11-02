@@ -1,0 +1,41 @@
+{{define "content"}}
+<section class="card">
+  <h1>New revision session</h1>
+  <p class="muted">Upload a question paper and the study material to answer it from. Answers are built from your documents first;
+  external sources are used only when the documents are not enough, and every answer shows where it came from.</p>
+
+  {{if .Error}}<div class="alert alert-error" role="alert">{{.Error}}</div>{{end}}
+  {{if not .SearchReady}}
+  <div class="alert alert-info">External search is not configured. Questions your documents cannot answer will be reported as not answered instead of being looked up online.</div>
+  {{end}}
+
+  <form method="post" action="/sessions" enctype="multipart/form-data" class="upload-form" data-busy="Uploading and reading documents… identifying questions can take up to a minute.">
+    <label>Session title <span class="muted">(optional)</span>
+      <input type="text" name="title" maxlength="200" placeholder="e.g. Biology Paper 1 – 2023">
+    </label>
+    <label>Question paper <span class="muted">(PDF or DOCX, max {{humanSize .MaxPaperSize}})</span>
+      <input type="file" name="paper" accept=".pdf,.docx" required>
+    </label>
+    <label>Reference documents <span class="muted">(PDF or DOCX, up to {{.MaxRefDocs}} files, max {{humanSize .MaxRefSize}} each)</span>
+      <input type="file" name="references" accept=".pdf,.docx" multiple required data-max-files="{{.MaxRefDocs}}">
+    </label>
+    <button type="submit" {{if not .LLMReady}}disabled{{end}}>Create session</button>
+  </form>
+</section>
+
+<section class="card">
+  <h2>Your sessions</h2>
+  {{if .Sessions}}
+  <ul class="session-list">
+    {{range .Sessions}}
+    <li>
+      <a href="/sessions/{{.ID}}">{{.Title}}</a>
+      <span class="muted">{{.CreatedAt.Local.Format "2 Jan 2006 15:04"}} · {{.QuestionCount}} questions · {{.AnsweredCount}} answered</span>
+    </li>
+    {{end}}
+  </ul>
+  {{else}}
+  <p class="muted">No sessions yet.</p>
+  {{end}}
+</section>
+{{end}}

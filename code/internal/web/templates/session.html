@@ -1,0 +1,63 @@
+{{define "content"}}
+<nav class="crumbs"><a href="/">Sessions</a> › {{.Session.Title}}</nav>
+
+<section class="card">
+  <h1>{{.Session.Title}}</h1>
+  <details class="docs">
+    <summary>Documents ({{len .Documents}})</summary>
+    <ul>
+      {{range .Documents}}
+      <li>
+        <span class="role role-{{.Role}}">{{if eq .Role "paper"}}Question paper{{else}}Reference{{end}}</span>
+        {{.Filename}} <span class="muted">· {{humanSize .SizeBytes}} · {{.Content.PageCount}} page(s){{if not .Content.PageNumbersReliable}} (approximate page numbers){{end}}</span>
+      </li>
+      {{end}}
+    </ul>
+    <p class="muted">Reference material: about {{thousands .Session.ReferenceTokens}} tokens, sent in full with every question (context window: {{thousands .ContextWindow}} tokens).</p>
+  </details>
+</section>
+
+<section class="card">
+  <h2>Questions</h2>
+  {{if eq .Session.QuestionsStatus "failed"}}
+    <div class="alert alert-error">Questions could not be extracted: {{.Session.QuestionsError}}</div>
+  {{end}}
+  {{if ne .Session.QuestionsStatus "ok"}}
+    <form method="post" action="/sessions/{{.Session.ID}}/extract" data-busy="Identifying questions…">
+      <button type="submit">{{if eq .Session.QuestionsStatus "failed"}}Retry question extraction{{else}}Extract questions{{end}}</button>
+    </form>
+  {{end}}
+
+  {{if .Session.UnassignedText}}
+  <details class="alert alert-warn">
+    <summary>Check for missing questions: {{len .Session.UnassignedText}} extraction note(s)</summary>
+    <p class="muted">Paper text listed here was not assigned to any question. It may just be instructions or headers, but if a question appears here it was not extracted reliably.</p>
+    <ul>{{range .Session.UnassignedText}}<li>{{.}}</li>{{end}}</ul>
+  </details>
+  {{end}}
+
+  {{if .Questions}}
+  <ol class="question-list">
+    {{range .Questions}}
+    <li class="depth-{{.Depth}}">
+      {{if .IsGroup}}
+        <span class="qnum">{{.Number}}</span>
+        <a href="/sessions/{{$.Session.ID}}/questions/{{.ID}}" class="qtext group">{{if .Text}}{{.Text}}{{else}}(see sub-questions){{end}}</a>
+      {{else}}
+        <span class="qnum">{{.Number}}</span>
+        <a href="/sessions/{{$.Session.ID}}/questions/{{.ID}}" class="qtext">{{.Text}}</a>
+        <span class="badge {{statusClass .Status}}">{{if .Status}}{{.Status}}{{else}}not generated{{end}}</span>
+      {{end}}
+      {{if not .Verified}}<span class="badge st-warn" title="This text could not be found in the question paper">check extraction</span>{{end}}
+    </li>
+    {{end}}
+  </ol>
+  {{end}}
+</section>
+
+<section class="card danger-zone">
+  <form method="post" action="/sessions/{{.Session.ID}}/delete" data-confirm="Delete this session and all its answers?">
+    <button type="submit" class="secondary">Delete session</button>
+  </form>
+</section>
+{{end}}

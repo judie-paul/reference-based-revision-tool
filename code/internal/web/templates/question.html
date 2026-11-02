@@ -1,0 +1,93 @@
+{{define "content"}}
+<nav class="crumbs"><a href="/">Sessions</a> › <a href="/sessions/{{.Session.ID}}">{{.Session.Title}}</a> › Question {{.Question.Number}}</nav>
+
+<nav class="pager">
+  {{if .Prev}}<a id="prev-link" href="/sessions/{{.Session.ID}}/questions/{{.Prev.ID}}">← {{.Prev.Number}}</a>{{else}}<span></span>{{end}}
+  <a href="/sessions/{{.Session.ID}}">All questions</a>
+  {{if .Next}}<a id="next-link" href="/sessions/{{.Session.ID}}/questions/{{.Next.ID}}">{{.Next.Number}} →</a>{{else}}<span></span>{{end}}
+</nav>
+
+<section class="card">
+  {{range .Chain}}{{if .Text}}<p class="stem"><span class="qnum">{{.Number}}</span> {{.Text}}</p>{{end}}{{end}}
+  <h1 class="question"><span class="qnum">{{.Question.Number}}</span> {{if .Question.Text}}{{.Question.Text}}{{else}}(no text of its own){{end}}
+    {{if .Question.Marks}}<span class="marks">{{.Question.Marks}}</span>{{end}}</h1>
+  {{if not .Question.Verified}}
+  <div class="alert alert-warn">This question's text could not be found word-for-word in the question paper. It may have been extracted incorrectly; compare it with the original paper.</div>
+  {{end}}
+
+  {{if .Children}}
+  <h2>Sub-questions</h2>
+  <ul class="children">
+    {{range .Children}}
+    <li><a href="/sessions/{{$.Session.ID}}/questions/{{.ID}}"><span class="qnum">{{.Number}}</span> {{.Text}}</a>
+      {{if not .IsGroup}}<span class="badge {{statusClass .Status}}">{{if .Status}}{{.Status}}{{else}}not generated{{end}}</span>{{end}}</li>
+    {{end}}
+  </ul>
+  {{end}}
+</section>
+
+{{if not .Question.IsGroup}}
+<section class="card" id="answer">
+  {{if .Error}}<div class="alert alert-error" role="alert">{{.Error}}</div>{{end}}
+
+  {{with .Answer}}
+  <details class="answer" open>
+    <summary>
+      <span class="answer-title">Answer</span>
+      <span class="badge big {{statusClass .Status}}">{{.Status}}</span>
+    </summary>
+
+    <p class="status-explain">
+      {{if eq .Status "DOCUMENT-BASED"}}Answered entirely from your uploaded documents. No external sources were used.
+      {{else if eq .Status "SUPPLEMENTED"}}Partly answered from your documents; missing information was completed from external sources. Each part below shows its source.
+      {{else if eq .Status "EXTERNAL"}}Your uploaded documents did not contain this answer. It is based on external sources only.
+      {{else}}No answer could be established from the available sources.{{end}}
+    </p>
+
+    {{if .Notice}}<div class="alert alert-info notice">{{.Notice}}</div>{{end}}
+    {{if .Contradictions}}<div class="alert alert-warn"><strong>Contradiction:</strong> <span class="notice">{{.Contradictions}}</span></div>{{end}}
+    {{if .Ambiguity}}<div class="alert alert-warn"><strong>Ambiguity:</strong> <span class="notice">{{.Ambiguity}}</span></div>{{end}}
+    {{if and .MissingInfo (ne .Status "DOCUMENT-BASED")}}<p class="muted"><strong>Not covered by your documents:</strong> {{.MissingInfo}}</p>{{end}}
+
+    {{range .Segments}}
+    <div class="segment basis-{{.Basis}}">
+      <span class="basis-tag">{{if eq .Basis "document"}}From your documents{{else if eq .Basis "external"}}External{{else}}Unverified{{end}}</span>
+      <div class="segment-text">{{.Text}}</div>
+      {{if eq .Basis "unsupported"}}<p class="muted small">The claimed source for this part could not be verified. Do not rely on it without checking.</p>{{end}}
+      {{if .Sources}}
+      <details class="sources">
+        <summary>Sources ({{len .Sources}})</summary>
+        <ul>
+          {{range .Sources}}
+          {{if eq .Kind "document"}}
+          <li class="src-doc">
+            <strong>{{.Filename}}</strong>{{if .Page}}, page {{if .PageApprox}}≈{{end}}{{.Page}}{{end}}{{if .Section}} · <em>{{.Section}}</em>{{end}}
+            {{if .Verified}}<span class="badge st-document small">quote verified</span>{{else}}<span class="badge st-warn small">not found in document</span>{{end}}
+            {{if .Quote}}<blockquote>{{.Quote}}</blockquote>{{end}}
+          </li>
+          {{else}}
+          <li class="src-ext">
+            <a href="{{.URL}}" target="_blank" rel="noopener noreferrer">{{if .Title}}{{.Title}}{{else}}{{.URL}}{{end}}</a>
+            <div class="muted small url">{{.URL}}</div>
+            {{if .Snippet}}<blockquote>{{.Snippet}}</blockquote>{{end}}
+          </li>
+          {{end}}
+          {{end}}
+        </ul>
+      </details>
+      {{end}}
+    </div>
+    {{end}}
+    <p class="muted small">Generated {{.CreatedAt.Local.Format "2 Jan 2006 15:04"}} by {{.Model}}.</p>
+  </details>
+  {{else}}
+    <p class="muted">No answer has been generated for this question yet.</p>
+  {{end}}
+
+  <form method="post" action="/sessions/{{.Session.ID}}/questions/{{.Question.ID}}/answer" data-busy="Generating the answer from your documents… this can take a minute.">
+    <button type="submit" {{if or (not .LLMReady) .Busy}}disabled{{end}}>{{if .Answer}}Regenerate answer{{else}}Generate answer{{end}}</button>
+    {{if .Busy}}<span class="muted">An answer is being generated…</span>{{end}}
+  </form>
+</section>
+{{end}}
+{{end}}
